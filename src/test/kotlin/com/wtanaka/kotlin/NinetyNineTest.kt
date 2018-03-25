@@ -23,4 +23,10 @@ class NinetyNineTest {
         assertEquals(Just('e'), elementAt("haskell".map { it }.toCons(), 5))
     }
 
+    @Test
+    fun testFour() {
+        assertEquals(3, myLength(listOf(123, 456, 789).toCons()))
+        assertEquals(13, myLength("Hello, world!".map { it }.toCons()))
+    }
+
 }

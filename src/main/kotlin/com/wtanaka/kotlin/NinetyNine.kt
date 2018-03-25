@@ -70,8 +70,9 @@ fun <T> elementAt(list: ConsList<T>, index: Int): Maybe<T> = when (list) {
 }
 
 /**
- * Main class.
+ * Problem 4, Find the number of elements of a list.
  */
-fun main(args: ConsList<String>) {
-    println(listOf(1, 2, 3, 4).toCons())
+fun <T> myLength(list: ConsList<T>): Int = when (list) {
+    is Nil -> 0
+    is Cons -> 1 + myLength(list.tail)
 }
