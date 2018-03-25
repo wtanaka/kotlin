@@ -1,0 +1,65 @@
+buildscript {
+    ext.kotlin_version = '1.2.30'
+    ext.detekt_version = '1.0.0.RC6-4'
+
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+apply plugin: 'kotlin-platform-jvm'
+
+repositories {
+    mavenCentral()
+    // For detekt
+    maven { url "https://plugins.gradle.org/m2/" }
+}
+
+configurations {
+    detekt
+    ktlint
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    testCompile "junit:junit:4.12"
+    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
+    testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+    detekt "io.gitlab.arturbosch.detekt:detekt-cli:$detekt_version"
+    ktlint "com.github.shyiko:ktlint:0.20.0"
+}
+
+// Use the command line version of detekt because
+// the plugin does not deal with nested projects well
+task detekt(type: JavaExec, group: "verification") {
+    main = "io.gitlab.arturbosch.detekt.cli.Main"
+    classpath = configurations.detekt
+    def input = "$projectDir"
+    def config = "$projectDir/config/detekt.yml"
+    def filters = ".*test.*"
+    def params = ['-i', input, '-c', config, '-f', filters]
+    args(params)
+}
+check.dependsOn detekt
+
+task ktlint(type: JavaExec, group: "verification") {
+    description = "Check Kotlin code style."
+    classpath = configurations.ktlint
+    main = "com.github.shyiko.ktlint.Main"
+    args "src/**/*.kt"
+    // to generate report in checkstyle format prepend following args:
+    // "--reporter=plain", "--reporter=checkstyle,output=${buildDir}/ktlint.xml"
+    // see https://github.com/shyiko/ktlint#usage for more
+}
+check.dependsOn ktlint
+
+task ktlintFormat(type: JavaExec, group: "formatting") {
+    description = "Fix Kotlin code style deviations."
+    classpath = configurations.ktlint
+    main = "com.github.shyiko.ktlint.Main"
+    args "-F", "src/**/*.kt"
+}
+
